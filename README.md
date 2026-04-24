@@ -1,2 +1,2 @@
-# AEDs-1-Monitoria
-Aqui vou postar todos os meus TPs, Atividades e Resumos de AEDs 
+# Organizar tudo da faculdade aqui
+Aqui vou postar tudo que acahr importante das matérias que achar importante da faculdade
