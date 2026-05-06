@@ -73,7 +73,6 @@ public class LabPilhaFlexivel {
             return topo;
         }
 
-
         public static void main(String[] args) {
             Scanner sc = new Scanner(System.in);
             System.out.print("Enter a string: ");
