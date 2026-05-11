@@ -12,41 +12,15 @@ class ArvoreBi{
             this.dir = null;
         }
 
-        /*public static void inserir(No raiz, int valor) {
-            // 1. Caso Base: Se o nó é nulo, criamos um novo nó com o valor
-            if (raiz == null) {
-                raiz = new No(valor);
-                return;
-            }else{// != null
-                No atual = raiz;
-                if(valor < atual.elemento){
-                    if(atual.esq == null){
-                        atual.esq = new No(valor);
-                    }else{
-                        inserir(atual.esq, valor);
-                    }
-                }else{
-                    if(atual.dir == null){
-                        atual.dir = new No(valor);
-                    }else{
-                        inserir(atual.dir, valor);
-                    }
-                }
-            }
-
-        }*/ //O MEUUUU
         
 
             // O MELHORRRR
         public No inserir(No Raiz, int valor) {
-            // 1. Caso Base: Se cheguei no null, encontrei o lugar! 
-            // Crio o nó e o retorno para quem me chamou.
-            No i = Raiz;
+            No i = Raiz; // gosto de fazer isso 
             if (i == null) {
                 return new No(valor);
             }
 
-            // 2. Navegação: "Pai, o seu novo filho será o resultado dessa busca"
             if (valor < i.elemento) {
                 i.esq = inserir(i.esq, valor);
 
@@ -55,7 +29,6 @@ class ArvoreBi{
                 i.dir = inserir(i.dir, valor);
             }
 
-            // 3. Retorna o próprio nó (sem alterações se não for o lugar da inserção)
             return i;
         }
         
@@ -89,37 +62,25 @@ class ArvoreBi{
 
 		return i;
 	    }
+
+
+
         // Achar elemento na árvore:
         public static boolean existeVal(No raiz, int valor) {
-            // 1. Caso Base: Se o nó é nulo, o valor não está aqui
-            if (raiz == null) {
-                return false;
-            }
 
-            // 2. Verificamos se o nó ATUAL tem o que procuramos
-            // Isso deve ser feito ANTES de olhar os filhos ou desistir
-            if (raiz.elemento == valor) {
-                return true;
-            }
+         if (raiz == null) {
+            return false;
+        }
 
-        // 3. Se não achou aqui, procura nos dois lados
-        // O operador || (OU) é mágico: se achar na esquerda, ele nem tenta a direita
+        if (raiz.elemento == valor) {
+            return true;
+        }
+
         return existeVal(raiz.esq, valor) || existeVal(raiz.dir, valor);
         }
 
 
-        public static int acharMenor(No raiz) {
-            if (raiz == null) {
-                System.out.println("A árvore está vazia");//throw new IllegalArgumentException("A árvore está vazia");
-                return 0;
-            }else{
-                No atual = raiz;
-                while (atual.esq != null) {
-                    atual = atual.esq;
-                }
-                return atual.elemento;
-            } 
-        }
+    
 
         public static int acharMaior(No raiz) {
             if (raiz == null) {
@@ -156,6 +117,8 @@ class ArvoreBi{
             }
             return menor;
         }
+
+
         // CENTRAL
         public void caminharCentral(No i) {
             if (i != null) {
@@ -182,6 +145,59 @@ class ArvoreBi{
             }
         }
     }
+
+    
+// Exercício 3 do slide C de árvores binárias
+    private int somar(No i) {
+        int soma;
+        if (i == null) {
+            return 0; 
+        }
+        return  soma =i.elemento + somar(i.esq) + somar(i.dir);
+    }
+    private int quantElem(No i) {
+        int soma; 
+        if (i == null) {
+            return 0; 
+        }
+        return soma = 1 + quantElem(i.esq) + quantElem(i.dir);
+    }
+
+
+    // Exercício 4 do slide C de árvores binárias
+    public static int elementoPar(No Raiz){
+        No i = Raiz;
+        int soma ;
+        if (i== null){
+            return 0;
+        }
+    
+        if((i.elemento % 2) == 0){
+            return soma = 1 + elementoPar(i.esq) + elementoPar(i.dir);
+        }else{
+            return soma = 0 + elementoPar(i.esq) + elementoPar(i.dir);// sera que o max vai ficar puto ??
+        }
+    }
+    
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public static void main(String[] args){
 
     }
