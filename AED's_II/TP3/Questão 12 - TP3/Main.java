@@ -1,5 +1,5 @@
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 class Hora {
     private int hora;
@@ -227,33 +227,31 @@ class Restaurante {
         String tpCozinha = scan.next();  
         int faixa_preco = pegarFaixa_Preco(scan.next());
         String horarios = scan.next();
-        
-        Scanner scanHorarios = new Scanner(horarios);
+        Scanner scanHorarios = new Scanner(horarios); 
         scanHorarios.useDelimiter("-");
-        Hora horaAbertura = Hora.parseHora(scanHorarios.next());
+        Hora horaAbertura = Hora.parseHora(scanHorarios.next()); 
         Hora horaFechamento = Hora.parseHora(scanHorarios.next());
-        scanHorarios.close();
-        
-        Data dataAbertura = Data.parseData(scan.next());
-        String abertoStr = scan.next();
-        boolean aberto = (abertoStr.compareTo("true") == 0);
+        scanHorarios.close(); 
+        Data dataAbertura = Data.parseData(scan.next()); 
+        String abertoStr = scan.next(); 
+        boolean aberto = (abertoStr.compareTo("true") == 0); 
 
-        scan.close();
+        scan.close(); 
 
-        String[] aux = new String[10];
+        String[] aux = new String[10]; 
         int cout = 0;
-        Scanner scanTp = new Scanner(tpCozinha);
+        Scanner scanTp = new Scanner(tpCozinha); 
         scanTp.useDelimiter(";");
         while(scanTp.hasNext()) {
             String palavra = scanTp.next();
             if(palavra.length() > 0) {
-                aux[cout] = palavra;
+                aux[cout] = palavra; 
                 cout++;
             }
         }
         scanTp.close();
     
-        String[] tipoCozinha = new String[cout];
+        String[] tipoCozinha = new String[cout]; 
         for(int i = 0; i < cout; i++) {
             tipoCozinha[i] = aux[i];
         }
@@ -270,7 +268,6 @@ class Restaurante {
                 strCozinhas += ","; 
             }
         }
-        
         int n = this.faixa_preco;
         String faixa_p = "";
         for(int i = 0; i < n; i++) {
@@ -278,13 +275,13 @@ class Restaurante {
         }
         
         double valor = this.avaliacao;
-        String strAvaliacao = valor + "";
+        String strAvaliacao = valor + ""; 
 
         String s = String.format("[%d ## %s ## %s ## %d ## %s ## [%s] ## %s ## %s-%s ## %s ## %b]", 
                 idRestaurante, nome, cidade, capacidade, strAvaliacao, strCozinhas, 
-                faixa_p, horarioAbertura.formatar(), horarioFechamento.formatar(),
+                faixa_p, horarioAbertura.formatar(), horarioFechamento.formatar(), 
                 dataAbertura.formatar(), aberto);
-        return s;
+        return s; 
     }
 }
 
@@ -331,24 +328,24 @@ class ColecaoRestaurantes {
            restaurantes[i] = Restaurante.parseRestaurante(linha);
            i++;
         }
-        scan.close();        
+        scan.close();
     }
 
     public static ColecaoRestaurantes lerCsv() throws Exception {
-        File arquivo = new File("/tmp/restaurantes.csv");
+        File arquivo = new File("/tmp/restaurantes.csv"); 
         Scanner scan = new Scanner(arquivo);
 
         int tam = 0;
         while(scan.hasNext()) {
             scan.nextLine();
-            tam++;
+            tam++; 
         }
 
         scan.close();
-        ColecaoRestaurantes novaCol = new ColecaoRestaurantes(tam - 1);
+        ColecaoRestaurantes novaCol = new ColecaoRestaurantes(tam - 1); 
         novaCol.lerCsv("/tmp/restaurantes.csv");
         
-        return novaCol;
+        return novaCol; 
     }
 
     public Restaurante buscarPorId(int id) {
@@ -361,59 +358,66 @@ class ColecaoRestaurantes {
      }
 }
 
-class Celula {
-    public Restaurante rest;
-    public Celula prox;
+class No {
+    public Restaurante elemento;
+    public No dir, esq;
 
-    public Celula() {
-        this.rest = null;
-        this.prox = null;
-    }
-
-    public Celula(Restaurante rest) {
-        this.rest = rest;
-        this.prox = null;
+    public No(Restaurante x) {
+        this.elemento = x;
+        this.dir = this.esq = null;
     }
 }
 
-class PilhaFlex {
-    public Celula topo;
+class Arvore {
+    public No raiz;
 
-    public PilhaFlex() {
-        topo = null;
+    public Arvore() {
+        this.raiz = null;   
     }
 
     public void inserir(Restaurante x) {
-        Celula tmp = new Celula(x);
-        tmp.prox = topo;
-        topo = tmp;
-        tmp = null;
+        raiz = inserir(x, raiz);
     }
 
-    public Restaurante remover() throws Exception {
-        if(topo == null)
-            throw new Exception("Erro ao remover!");
+    public No inserir(Restaurante x, No i) {
+        if(i == null) {
+            i = new No(x);
+        } else if(i.elemento.getNome().compareTo(x.getNome()) > 0) {
+            i.esq = inserir(x, i.esq);
+        } else if(i.elemento.getNome().compareTo(x.getNome()) < 0) {
+            i.dir = inserir(x, i.dir);
+        } else {
+            System.out.println("Erro ao inserir");
+        }
+        return i;
+    }
 
-        Restaurante resp = topo.rest;
-        Celula tmp = topo;
-        topo = topo.prox;
-        tmp.prox = null;
-        tmp = null;
+    public boolean pesquisar(String x) {
+        System.out.print("raiz ");
+        return pesquisar(x, raiz);
+    }
+
+    public boolean pesquisar(String x, No i) {
+        boolean resp = false;
+        if(i == null) {
+            resp = false;
+        } else if(i.elemento.getNome().compareTo(x) == 0) {
+            resp = true;
+        } else if(i.elemento.getNome().compareTo(x) > 0) {
+            System.out.print("esq ");
+            resp = pesquisar(x, i.esq);
+        } else {
+            System.out.print("dir ");
+            resp = pesquisar(x, i.dir);
+        }
         return resp;
     }
 
-    public int tamanho() {
-        int tam = 0;
-        for(Celula i = topo; i != null; i = i.prox)
-            tam++;
-        
-        return tam;
-    }
-
-   
-    public void mostrar() {
-        for(Celula i = topo; i != null; i = i.prox) {
-            System.out.println(i.rest.formatar());
+    public void caminhaCentral(No i) {
+        if(i != null) { 
+            caminhaCentral(i.esq);
+            System.out.println(i.elemento.formatar());      
+            caminhaCentral(i.dir);
         }
     }
 }
@@ -424,34 +428,29 @@ public class Main {
         ColecaoRestaurantes cr = ColecaoRestaurantes.lerCsv();
         
         String linha = scan.next();
-        PilhaFlex p = new PilhaFlex();
+        Arvore resp = new Arvore();
         
         while(linha.compareTo("-1") != 0) {
-            int id = Integer.parseInt(linha);
-            Restaurante r = cr.buscarPorId(id);
-            if(r != null) {
-                p.inserir(r);
-            }
-            linha = scan.next();
+           int id = Integer.parseInt(linha);
+           Restaurante r = cr.buscarPorId(id);
+           if(r != null) {
+               resp.inserir(r);
+           }
+           linha = scan.next();
+        }
+      
+        scan.nextLine(); 
+        linha = scan.nextLine();
+        
+        while(linha.compareTo("FIM") != 0) {
+            if(resp.pesquisar(linha) == true)
+                System.out.println("SIM");
+            else
+                System.out.println("NAO");
+            linha = scan.nextLine();
         }
         
-        int n = scan.nextInt();
-        
-        for(int i = 0; i < n; i++) {
-            String entrada = scan.next();
-            
-            if(entrada.equals("I")) {
-                int id = scan.nextInt();
-                Restaurante aux = cr.buscarPorId(id);
-                if (aux != null) p.inserir(aux);
-            } 
-            else if(entrada.equals("R")) {
-                
-                System.out.println("(R)" + p.remover().getNome());
-            }
-        }
-        
-        p.mostrar();
+        resp.caminhaCentral(resp.raiz);
         scan.close();
     }
 }
