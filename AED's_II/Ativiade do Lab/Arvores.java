@@ -11,14 +11,14 @@ public class Arvores {
             this.direita = null;
             this.cor = false; // Inicialmente, o nó é branco
         }
-        public boolean isNotipo4 (){
+        public boolean isNoTipo4 (){
             if(this.direita!= null && this.esquerda!=null){
             
                 if(this.direita.cor== true && this.esquerda.cor == true){
-                    system.out.println("O nó " + this.valor + " é do tipo 4");
+                    System.out.println("O nó " + this.valor + " é do tipo 4");
                     return true;
                 }else{
-                    system.out.println("O nó " + this.valor + " não é do tipo 4");
+                    System.out.println("O nó " + this.valor + " não é do tipo 4");
                     return false;
                 }
             
@@ -35,15 +35,44 @@ public class Arvores {
         }
 
         private void fragmentar(No no){
-            if(no.isNotipo4()){
+            
+            if(no.isNoTipo4()){
                 no.esquerda.cor = false;
                 no.direita.cor = false;
-                no.cor = true; 
+                if(no != raiz){
+                    no.cor = true; 
+                }
+                
             }else{
                 System.out.println("O nó " + no.valor + " não é do tipo 4, não pode ser fragmentado.");
             }
         }
+
+
+        private No rotacionarDir(No no) {
+            System.out.println("Rotacionar DIR(" + no.valor + ")");
+            No noEsq = no.esquerda;
+            No noEsqDir = noEsq.direita;
+
+            noEsq.direita = no;
+            no.esquerda = noEsqDir;
+
+            return noEsq;
+        }
+
+        private No rotacionarEsq(No no) {
+            System.out.println("Rotacionar ESQ(" + no.valor + ")");
+            No noDir = no.direita;
+            No noDirEsq = noDir.esquerda;
+
+            noDir.esquerda = no;
+            no.direita = noDirEsq;
+
+            return noDir;
+        }
+
         
+
     }
     class Arvore{
         No raiz;
