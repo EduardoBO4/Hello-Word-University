@@ -71,6 +71,16 @@ public class Arvores {
             return noDir;
         }
 
+        private No rotacionarDirEsq(No no) {
+            System.out.println("Rotacionar DIR-ESQ(" + no.valor + ")");
+            no.direita = rotacionarDir(no.direita);
+            return rotacionarEsq(no);
+        }
+        private No rotacionarEsqDir(No no) {
+            System.out.println("Rotacionar ESQ-DIR(" + no.valor + ")");
+            no.esquerda = rotacionarEsq(no.esquerda);
+            return rotacionarDir(no);
+        }
         
 
     }
