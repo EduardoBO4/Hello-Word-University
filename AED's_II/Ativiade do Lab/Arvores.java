@@ -1,5 +1,5 @@
 import java.util.*; 
-
+// pedro pediu para fazer só até a 9 
 public class Arvores {
     class No {
         int valor;
