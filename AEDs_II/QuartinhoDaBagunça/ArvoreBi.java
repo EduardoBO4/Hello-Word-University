@@ -217,7 +217,7 @@ class ArvoreBi{
                         return divPorOnze(raiz.dir) ||  divPorOnze(raiz.esq);// entregar para quem chama essa info, bastando um dos lados ser verdadeiro  
                 }
         }
-	 public static No resultArvore(Celula p1.prox, CelulaDupla p2.prox){// o max fez uma linha inicializando cada um com p1 = p.prox;
+	 public static No resultArvore(Celula p1.prox, CelulaDupla p2.prox){ // o max fez uma linha inicializando cada um com p1 = p.prox;
                 No raiz = null
                 while(p1 != null && p2 != null){
                         raiz = inserir (raiz, p1.elemento);
