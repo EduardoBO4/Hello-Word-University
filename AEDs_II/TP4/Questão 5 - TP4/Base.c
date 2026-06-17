@@ -5,7 +5,6 @@
 
 #define MAX_STR 64
 #define MAX_COZINHAS 10
-#define TAM_TAB 31
 
 typedef struct {
     int hora;
@@ -38,8 +37,13 @@ typedef struct NoLista {
     struct NoLista* prox;
 } NoLista;
 
-NoLista* tabela[TAM_TAB];
+typedef struct {
+    int tamTab;
+    NoLista* tabela[];
+} Hash;
+
 long comparacoes = 0;
+long mov = 0;
 
 Hora parseHora(const char* s) {
     Hora h; sscanf(s, "%d:%d", &h.hora, &h.minuto); return h;
@@ -108,43 +112,65 @@ void formatar(Restaurante* r, char* buf) {
             r->aberto ? "true" : "false");
 }
 
-int somaAscii(const char* s) {
+void tirarN(char* s) {
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (s[i] == '\n' || s[i] == '\r') s[i] = '\0';
+    }
+}
+
+Hash* iniciarHash(int tam) {
+    mov++;
+    Hash* h = (Hash*)malloc(sizeof(Hash) + tam * sizeof(NoLista*));
+    if (h == NULL) return NULL;
+    h->tamTab = tam;
+    for (int i = 0; i < tam; i++) h->tabela[i] = NULL;
+    return h;
+}
+
+int hashFunc(char* chave, Hash* h) {
     int soma = 0;
-    for (int i = 0; s[i]; i++) soma += (unsigned char)s[i];
-    return soma;
+    for (int i = 0; chave[i] != '\0'; i++) soma += (int)chave[i];
+    return soma % h->tamTab;
 }
 
-int hashFunc(const char* nome) {
-    return somaAscii(nome) % TAM_TAB;
-}
-
-void inserir(Restaurante* r) {
-    int h = hashFunc(r->nome);
+NoLista* criarNo(Restaurante* r) {
     NoLista* novo = (NoLista*)malloc(sizeof(NoLista));
     novo->restaurante = r;
-    novo->prox = tabela[h];
-    tabela[h] = novo;
+    novo->prox = NULL;
+    return novo;
 }
 
-int pesquisar(const char* nome) {
-    int h = hashFunc(nome);
-    NoLista* p = tabela[h];
-    while (p != NULL) {
+void inserir(Restaurante* r, Hash* h) {
+    int pos = hashFunc(r->nome, h);
+    NoLista* novo = criarNo(r);
+    novo->prox = h->tabela[pos];
+    h->tabela[pos] = novo;
+}
+
+NoLista* pesquisar(char* chave, Hash* h, int* posicao) {
+    int pos = hashFunc(chave, h);
+    *posicao = pos;
+    NoLista* atual = h->tabela[pos];
+    while (atual != NULL) {
         comparacoes++;
-        if (strcmp(p->restaurante->nome, nome) == 0) return h;
-        p = p->prox;
-    }
-    return -1;
-}
-
-Restaurante* getRestaurante(const char* nome) {
-    int h = hashFunc(nome);
-    NoLista* p = tabela[h];
-    while (p != NULL) {
-        if (strcmp(p->restaurante->nome, nome) == 0) return p->restaurante;
-        p = p->prox;
+        if (strcmp(atual->restaurante->nome, chave) == 0) {
+            return atual;
+        }
+        atual = atual->prox;
     }
     return NULL;
+}
+
+void liberarHash(Hash* h) {
+    for (int i = 0; i < h->tamTab; i++) {
+        NoLista* atual = h->tabela[i];
+        while (atual != NULL) {
+            NoLista* prox = atual->prox;
+            free(atual);
+            atual = prox;
+        }
+    }
+    free(h);
 }
 
 Restaurante restaurantes[512];
@@ -171,39 +197,38 @@ void lerCsv() {
 }
 
 int main() {
-    for (int i = 0; i < TAM_TAB; i++) tabela[i] = NULL;
     lerCsv();
+    Hash* h = iniciarHash(31);
 
     char linha[128];
     scanf("%s", linha);
     while (strcmp(linha, "-1") != 0) {
         int id = atoi(linha);
         Restaurante* r = buscarPorId(id);
-        if (r != NULL) inserir(r);
+        if (r != NULL) inserir(r, h);
         scanf("%s", linha);
     }
 
     char consulta[MAX_STR];
-    getchar();
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
     fgets(consulta, sizeof(consulta), stdin);
-    if (strlen(consulta) > 0 && consulta[strlen(consulta)-1] == '\n')
-        consulta[strlen(consulta)-1] = '\0';
+    tirarN(consulta);
 
     clock_t inicio = clock();
 
     while (strcmp(consulta, "FIM") != 0) {
-        int pos = pesquisar(consulta);
-        if (pos == -1) {
-            printf("-1\n");
-        } else {
+        int posicao = 0;
+        NoLista* achou = pesquisar(consulta, h, &posicao);
+        if (achou != NULL) {
             char buf[1024];
-            Restaurante* r = getRestaurante(consulta);
-            formatar(r, buf);
-            printf("%d %s\n", pos, buf);
+            formatar(achou->restaurante, buf);
+            printf("%d %s\n", posicao, buf);
+        } else {
+            printf("-1\n");
         }
         fgets(consulta, sizeof(consulta), stdin);
-        if (strlen(consulta) > 0 && consulta[strlen(consulta)-1] == '\n')
-            consulta[strlen(consulta)-1] = '\0';
+        tirarN(consulta);
     }
 
     clock_t fim = clock();
@@ -211,8 +236,9 @@ int main() {
 
     FILE* arq = fopen("890309_hash_indireta.txt", "w");
     if (arq) {
-        fprintf(arq, "890309\t%ld\t%.2f\n", comparacoes, tempoMs);
+        fprintf(arq, "890309\t%ld\t%ld\t%.2f\n", comparacoes, mov, tempoMs);
         fclose(arq);
     }
+    liberarHash(h);
     return 0;
 }

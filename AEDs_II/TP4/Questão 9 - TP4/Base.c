@@ -5,6 +5,7 @@
 
 #define MAX_STR 64
 #define MAX_COZINHAS 10
+#define TAM_HASH 53
 
 typedef struct {
     int hora;
@@ -35,14 +36,14 @@ typedef struct {
 struct NoTrie;
 
 typedef struct NoFilho {
-    char c;
+    unsigned char c;
     struct NoTrie* filho;
     struct NoFilho* prox;
 } NoFilho;
 
 typedef struct NoTrie {
     Restaurante* restaurante;
-    NoFilho* filhos;
+    NoFilho* filhos[TAM_HASH];
 } NoTrie;
 
 long comparacoes = 0;
@@ -114,33 +115,41 @@ void formatar(Restaurante* r, char* buf) {
             r->aberto ? "true" : "false");
 }
 
+void tirarN(char* s) {
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (s[i] == '\n' || s[i] == '\r') s[i] = '\0';
+    }
+}
+
 NoTrie* novoNoTrie() {
     NoTrie* n = (NoTrie*)malloc(sizeof(NoTrie));
     n->restaurante = NULL;
-    n->filhos = NULL;
+    for (int i = 0; i < TAM_HASH; i++) n->filhos[i] = NULL;
     return n;
 }
 
-NoTrie* buscarFilho(NoFilho* filhos, char c) {
-    NoFilho* f = filhos;
+NoTrie* buscarFilho(NoTrie* no, char c) {
+    int h = (unsigned char)c % TAM_HASH;
+    NoFilho* f = no->filhos[h];
     while (f != NULL) {
-        if (f->c == c) return f->filho;
+        if (f->c == (unsigned char)c) return f->filho;
         f = f->prox;
     }
     return NULL;
 }
 
 NoTrie* obterOuCriarFilho(NoTrie* no, char c) {
-    NoFilho* f = no->filhos;
+    int h = (unsigned char)c % TAM_HASH;
+    NoFilho* f = no->filhos[h];
     while (f != NULL) {
-        if (f->c == c) return f->filho;
+        if (f->c == (unsigned char)c) return f->filho;
         f = f->prox;
     }
     NoFilho* novo = (NoFilho*)malloc(sizeof(NoFilho));
-    novo->c = c;
+    novo->c = (unsigned char)c;
     novo->filho = novoNoTrie();
-    novo->prox = no->filhos;
-    no->filhos = novo;
+    novo->prox = no->filhos[h];
+    no->filhos[h] = novo;
     return novo->filho;
 }
 
@@ -158,7 +167,7 @@ int pesquisar(NoTrie* raiz, const char* nome) {
     for (int i = 0; nome[i] != '\0'; i++) {
         char c = nome[i];
         comparacoes++;
-        NoTrie* filho = buscarFilho(atual->filhos, c);
+        NoTrie* filho = buscarFilho(atual, c);
         if (filho == NULL) {
             return 0;
         }
@@ -211,10 +220,10 @@ int main() {
     }
 
     char consulta[MAX_STR];
-    getchar();
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
     fgets(consulta, sizeof(consulta), stdin);
-    if (strlen(consulta) > 0 && consulta[strlen(consulta)-1] == '\n')
-        consulta[strlen(consulta)-1] = '\0';
+    tirarN(consulta);
 
     clock_t inicio = clock();
 
@@ -222,14 +231,13 @@ int main() {
         int achou = pesquisar(raizTrie, consulta);
         if (!achou) printf("NAO\n");
         fgets(consulta, sizeof(consulta), stdin);
-        if (strlen(consulta) > 0 && consulta[strlen(consulta)-1] == '\n')
-            consulta[strlen(consulta)-1] = '\0';
+        tirarN(consulta);
     }
 
     clock_t fim = clock();
     double tempoMs = (double)(fim - inicio) / CLOCKS_PER_SEC * 1000.0;
 
-    FILE* arq = fopen("890309_arvore_trie_lista.txt", "w");
+    FILE* arq = fopen("890309_arvore_trie_hash.txt", "w");
     if (arq) {
         fprintf(arq, "890309\t%ld\t%.2f\n", comparacoes, tempoMs);
         fclose(arq);

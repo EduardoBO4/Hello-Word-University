@@ -114,6 +114,12 @@ void formatar(Restaurante* r, char* buf) {
             r->aberto ? "true" : "false");
 }
 
+void tirarN(char* s) {
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (s[i] == '\n' || s[i] == '\r') s[i] = '\0';
+    }
+}
+
 void inserirNaLista(NoLista** lista, Restaurante r) {
     NoLista* novo = (NoLista*)malloc(sizeof(NoLista));
     novo->restaurante = r;
@@ -210,18 +216,17 @@ int main() {
     }
 
     char consulta[MAX_STR];
-    getchar();
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
     fgets(consulta, sizeof(consulta), stdin);
-    if (strlen(consulta) > 0 && consulta[strlen(consulta)-1] == '\n')
-        consulta[strlen(consulta)-1] = '\0';
+    tirarN(consulta);
 
     clock_t inicio = clock();
 
     while (strcmp(consulta, "FIM") != 0) {
         pesquisar(raizBST, consulta[0], consulta, "RAIZ");
         fgets(consulta, sizeof(consulta), stdin);
-        if (strlen(consulta) > 0 && consulta[strlen(consulta)-1] == '\n')
-            consulta[strlen(consulta)-1] = '\0';
+        tirarN(consulta);
     }
 
     clock_t fim = clock();
