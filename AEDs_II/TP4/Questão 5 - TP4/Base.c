@@ -12,9 +12,7 @@ typedef struct {
 } Hora;
 
 typedef struct {
-    int dia;
-    int mes;
-    int ano;
+    int dia, mes, ano; // agrupado 
 } Data;
 
 typedef struct {
@@ -86,7 +84,14 @@ Restaurante parseLinha(const char* linha) {
     r.horarioAbertura = parseHora(h1);
     r.horarioFechamento = parseHora(h2);
     tok = strtok_r(NULL, ",", &saveptr); r.dataAbertura = parseData(tok);
-    tok = strtok_r(NULL, ",", &saveptr); r.aberto = (strncmp(tok, "true", 4) == 0) ? 1 : 0;
+    tok = strtok_r(NULL, ",", &saveptr); 
+    
+    // removido o ternario daqui pra nao dar pala
+    if (strncmp(tok, "true", 4) == 0) {
+        r.aberto = 1;
+    } else {
+        r.aberto = 0;
+    }
     return r;
 }
 
@@ -104,12 +109,21 @@ void formatar(Restaurante* r, char* buf) {
         sprintf(avalStr, "%.1f", r->avaliacao);
     else
         sprintf(avalStr, "%g", r->avaliacao);
+        
+    
+    char statusAberto[6];
+    if (r->aberto != 0) {
+        strcpy(statusAberto, "true");
+    } else {
+        strcpy(statusAberto, "false");
+    }
+    
     sprintf(buf, "[%d ## %s ## %s ## %d ## %s ## [%s] ## %s ## %02d:%02d-%02d:%02d ## %02d/%02d/%04d ## %s]",
             r->id, r->nome, r->cidade, r->capacidade, avalStr, cozStr, faixa,
             r->horarioAbertura.hora, r->horarioAbertura.minuto,
             r->horarioFechamento.hora, r->horarioFechamento.minuto,
             r->dataAbertura.dia, r->dataAbertura.mes, r->dataAbertura.ano,
-            r->aberto ? "true" : "false");
+            statusAberto);
 }
 
 void tirarN(char* s) {
@@ -120,6 +134,7 @@ void tirarN(char* s) {
 
 Hash* iniciarHash(int tam) {
     mov++;
+    
     Hash* h = (Hash*)malloc(sizeof(Hash) + tam * sizeof(NoLista*));
     if (h == NULL) return NULL;
     h->tamTab = tam;
@@ -143,6 +158,7 @@ NoLista* criarNo(Restaurante* r) {
 void inserir(Restaurante* r, Hash* h) {
     int pos = hashFunc(r->nome, h);
     NoLista* novo = criarNo(r);
+    // insere no inicio da lista encadeada daquela posicao
     novo->prox = h->tabela[pos];
     h->tabela[pos] = novo;
 }
@@ -153,15 +169,16 @@ NoLista* pesquisar(char* chave, Hash* h, int* posicao) {
     NoLista* atual = h->tabela[pos];
     while (atual != NULL) {
         comparacoes++;
-        if (strcmp(atual->restaurante->nome, chave) == 0) {
+   if (strcmp(atual->restaurante->nome, chave) == 0) {
             return atual;
-        }
+   }
         atual = atual->prox;
     }
     return NULL;
 }
 
 void liberarHash(Hash* h) {
+    // varrendo as listas pra nao deixar leak de memoria
     for (int i = 0; i < h->tamTab; i++) {
         NoLista* atual = h->tabela[i];
         while (atual != NULL) {
@@ -205,7 +222,7 @@ int main() {
     while (strcmp(linha, "-1") != 0) {
         int id = atoi(linha);
         Restaurante* r = buscarPorId(id);
-        if (r != NULL) inserir(r, h);
+      if (r != NULL) inserir(r, h);
         scanf("%s", linha);
     }
 
@@ -234,6 +251,7 @@ int main() {
     clock_t fim = clock();
     double tempoMs = (double)(fim - inicio) / CLOCKS_PER_SEC * 1000.0;
 
+    //  log do tp 
     FILE* arq = fopen("890309_hash_indireta.txt", "w");
     if (arq) {
         fprintf(arq, "890309\t%ld\t%ld\t%.2f\n", comparacoes, mov, tempoMs);

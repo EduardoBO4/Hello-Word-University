@@ -48,7 +48,7 @@ class Restaurante {
         Scanner scan = new Scanner(s); scan.useLocale(Locale.US); scan.useDelimiter(",");
         int id = scan.nextInt(); String nome = scan.next(); String cidade = scan.next();
         int capacidade = scan.nextInt(); double avaliacao = scan.nextDouble();
-        String tpCozinha = scan.next(); int faixa_preco = pegarFaixa_Preco(scan.next());
+        String tpCozinha = scan.next(); int faixa_preco  = pegarFaixa_Preco(scan.next()) ;
         String horarios = scan.next();
         Scanner scanH = new Scanner(horarios); scanH.useDelimiter("-");
         Hora hA = Hora.parseHora(scanH.next()); Hora hF = Hora.parseHora(scanH.next()); scanH.close();
@@ -89,6 +89,7 @@ class ColecaoRestaurantes {
         while (scan.hasNextLine()) { restaurantes[i] = Restaurante.parseRestaurante(scan.nextLine()); i++; }
         scan.close();
     }
+
     public static ColecaoRestaurantes lerCsv() throws Exception {
         File arquivo = new File("/tmp/restaurantes.csv"); Scanner scan = new Scanner(arquivo);
         int tam = 0; while (scan.hasNext()) { scan.nextLine(); tam++; } scan.close();
@@ -102,6 +103,7 @@ class ColecaoRestaurantes {
     }
 }
 
+
 class NoAVL {
     public Restaurante elemento;
     public NoAVL dir, esq;
@@ -113,6 +115,7 @@ class ArvoreAVLInterna {
     public NoAVL raiz;
     public long comparacoes;
     public ArvoreAVLInterna() { this.raiz = null; this.comparacoes = 0; }
+
 
     private int getAltura(NoAVL no) { return (no == null) ? 0 : no.altura; }
     private void atualizarAltura(NoAVL no) { no.altura = 1 + Math.max(getAltura(no.esq), getAltura(no.dir)); }
@@ -157,7 +160,7 @@ class ArvoreAVLInterna {
             return true;
         } else if (cmp > 0) {
             System.out.print("esq ");
-            return pesquisar(x, i.esq);
+            return pesquisar(x, i.esq) ;
         } else {
             System.out.print("dir ");
             return pesquisar(x, i.dir);
@@ -199,7 +202,7 @@ class ArvoreHibrida {
         System.out.print(dir + " ");
         if (no == null) return false;
         if (no.avl.pesquisar(nome)) return true;
-        if (pesquisar(no.esq, "ESQ", nome)) return true;
+     if (pesquisar(no.esq, "ESQ", nome)) return true;
         if (pesquisar(no.dir, "DIR", nome)) return true;
         return false;
     }
@@ -212,7 +215,7 @@ class ArvoreHibrida {
         return no.avl.comparacoes + somarComparacoes(no.esq) + somarComparacoes(no.dir);
     }
 }
-
+// QUALQUER COISA ESSE TREM QUEBRA NÃO MEXERRRR, PEDI AJUDA ATÉ DO PAPA
 public class Main {
     static final String MATRICULA = "890309";
 
@@ -234,7 +237,7 @@ public class Main {
         linha = scan.nextLine();
 
         long inicio = System.nanoTime();
-
+        // ATE O FIM 
         while (linha.compareTo("FIM") != 0) {
             boolean achou = arvore.pesquisar(arvore.raiz, "RAIZ", linha);
             if (!achou) System.out.print("NAO");
@@ -245,7 +248,7 @@ public class Main {
         long fim = System.nanoTime();
         double tempoMs = (fim - inicio) / 1_000_000.0;
         scan.close();
-
+        // log do top
         FileWriter arq = new FileWriter(MATRICULA + "_hibrida_arvore_arvore.txt");
         PrintWriter gravarArq = new PrintWriter(arq);
         gravarArq.printf("%s\t%d\t%.2f\n", MATRICULA, arvore.getComparacoes(), tempoMs);

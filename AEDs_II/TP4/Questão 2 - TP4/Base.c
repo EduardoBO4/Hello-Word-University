@@ -8,14 +8,11 @@
 #define PRETO 1
 
 typedef struct Data {
-    int dia;
-    int mes;
-    int ano;
+    int dia, mes, ano;
 } Data;
 
 typedef struct Hora {
-    int hora;
-    int minuto;
+    int hora, minuto;
 } Hora;
 
 typedef struct Restaurante {
@@ -78,6 +75,7 @@ void formatar_hora(Hora* hora, char* buffer) {
     sprintf(buffer, "%02d:%02d", hora->hora, hora->minuto);
 }
 
+// C e memoria n bate pq n fez um gabage collector
 void liberar_restaurante(Restaurante* r) {
     free(r->nome);
     free(r->cidade);
@@ -95,6 +93,7 @@ Restaurante* parse_restaurante(char *s) {
            &r->avaliacao, tipo, preco, hora_a, hora_f,
            data_a, aberto);
 
+    // limpando sujeira do buffer
     for (int i = 0; aberto[i] != '\0'; i++) {
         if (aberto[i] == '\r' || aberto[i] == '\n' || aberto[i] == ' ')
             aberto[i] = '\0';
@@ -159,7 +158,7 @@ void ler_csv_colecao(Colecao_Restaurante* colecao, char* path) {
         Restaurante* aux = parse_restaurante(linha);
         colecao->restaurante[i] = *aux;
         i++;
-        free(aux);
+        free(aux); // liberando o aux pq ja copiei
     }
     fclose(arq);
 }
@@ -200,19 +199,19 @@ int transformarInt(char *s) {
 }
 
 NoArvore* rotacaoDir(NoArvore* no) {
-    NoArvore* noEsq = no->esquerdo;
-    NoArvore* noEsqDir = noEsq->direito;
-    noEsq->direito = no;
-    no->esquerdo = noEsqDir;
-    return noEsq;
+    NoArvore* x = no->esquerdo;
+    NoArvore* T2 = x->direito;
+    x->direito = no;
+    no->esquerdo = T2;
+    return x;
 }
 
 NoArvore* rotacaoEsq(NoArvore* no) {
-    NoArvore* noDir = no->direito;
-    NoArvore* noDirEsq = noDir->esquerdo;
-    noDir->esquerdo = no;
-    no->direito = noDirEsq;
-    return noDir;
+    NoArvore* y = no->direito;
+    NoArvore* T2 = y->esquerdo;
+    y->esquerdo = no;
+    no->direito = T2;
+    return y;
 }
 
 NoArvore* rotacaoDirEsq(NoArvore* no) {
@@ -225,6 +224,7 @@ NoArvore* rotacaoEsqDir(NoArvore* no) {
     return rotacaoDir(no);
 }
 
+// O balanceamento da rubro é castigo do mosntro
 void balancear(NoArvore* bisavo, NoArvore* avo, NoArvore* pai, NoArvore* i) {
     if (pai->cor == PRETO) {
         if (strcmp(pai->dados->nome, avo->dados->nome) > 0) {
@@ -351,6 +351,7 @@ int main() {
 
     char buffer_entrada[50];
     scanf("%s", buffer_entrada);
+    // looping de insercao, pode vazar
     while (strcmp(buffer_entrada, "-1") != 0) {
         int id = transformarInt(buffer_entrada);
         int idx = buscarId(cr, id);
@@ -358,6 +359,7 @@ int main() {
         scanf("%s", buffer_entrada);
     }
 
+    //  limpar o buffer do stdin DE NVOO
     int caractere_limpeza;
     while ((caractere_limpeza = getchar()) != '\n' && caractere_limpeza != EOF);
 

@@ -18,6 +18,7 @@ class Hora {
     public static Hora parseHora(String s) {
         Scanner scan = new Scanner(s);
         scan.useDelimiter(":");
+        // as vezes o scanner da pau se o formato vir errado, mas por enquanto ok
         int hora = scan.nextInt();
         int minuto = scan.nextInt();
         scan.close();
@@ -58,6 +59,7 @@ class Data {
     }
 
     public String formatar() {
+        // lembrando que a ordem aqui é dia/mes/ano tp mando
         return String.format("%02d/%02d/%04d", this.dia, this.mes, this.ano);
     }
 }
@@ -69,7 +71,7 @@ class Restaurante {
     private int capacidade;
     private double avaliacao;
     private String[] tiposCozinha;
-    private int faixa_preco;
+    private int faixa_preco; // mantendo o nome assim mesmo
     private Hora horarioAbertura;
     private Hora horarioFechamento;
     private Data dataAbertura;
@@ -104,8 +106,11 @@ class Restaurante {
 
     public static int pegarFaixa_Preco(String s) {
         int cont = 0;
-        for (int i = 0; i < s.length(); i++)
-            if (s.charAt(i) == '$') cont++;
+        for (int i = 0; i < s.length(); i++){
+            if (s.charAt(i) == '$') {
+                cont++;
+            }
+        }
         return cont;
     }
 
@@ -121,16 +126,26 @@ class Restaurante {
         String tpCozinha = scan.next();
         int faixa_preco = pegarFaixa_Preco(scan.next());
         String horarios = scan.next();
+        
         Scanner scanHorarios = new Scanner(horarios);
         scanHorarios.useDelimiter("-");
         Hora horaAbertura = Hora.parseHora(scanHorarios.next());
         Hora horaFechamento = Hora.parseHora(scanHorarios.next());
         scanHorarios.close();
+        
         Data dataAbertura = Data.parseData(scan.next());
         String abertoStr = scan.next();
-        boolean aberto = (abertoStr.compareTo("true") == 0);
+        
+        // ternario aqui NUNCA
+        boolean aberto;
+        if (abertoStr.equals("true")) {
+            aberto = true;
+        } else {
+            aberto = false;
+        }
         scan.close();
 
+        // n sei se pode usar arraylist
         String[] aux = new String[10];
         int cout = 0;
         Scanner scanTp = new Scanner(tpCozinha);
@@ -144,7 +159,9 @@ class Restaurante {
         }
         scanTp.close();
         String[] tipoCozinha = new String[cout];
-        for (int i = 0; i < cout; i++) tipoCozinha[i] = aux[i];
+        for (int i = 0; i < cout; i++) {
+            tipoCozinha[i] = aux[i];
+        }
 
         return new Restaurante(id, nome, cidade, capacidade, avaliacao, tipoCozinha,
                 faixa_preco, horaAbertura, horaFechamento, dataAbertura, aberto);
@@ -158,9 +175,9 @@ class Restaurante {
         }
         String faixa_p = "";
         for (int i = 0; i < faixa_preco; i++) faixa_p += '$';
-        String strAvaliacao = avaliacao + "";
+        
         return String.format("[%d ## %s ## %s ## %d ## %s ## [%s] ## %s ## %s-%s ## %s ## %b]",
-                idRestaurante, nome, cidade, capacidade, strAvaliacao, strCozinhas,
+                idRestaurante, nome, cidade, capacidade, avaliacao, strCozinhas,
                 faixa_p, horarioAbertura.formatar(), horarioFechamento.formatar(),
                 dataAbertura.formatar(), aberto);
     }
@@ -175,13 +192,10 @@ class ColecaoRestaurantes {
         this.restaurantes = new Restaurante[tamanho];
     }
 
-    public int getTamanho() { return tamanho; }
-    public Restaurante[] getRestaurantes() { return restaurantes; }
-
     public void lerCsv(String path) throws Exception {
         File arquivo = new File(path);
         Scanner scan = new Scanner(arquivo);
-        if (scan.hasNextLine()) scan.nextLine();
+        if (scan.hasNextLine()) scan.nextLine(); // pula cabecalho
         int i = 0;
         while (scan.hasNextLine()) {
             String linha = scan.nextLine();
@@ -195,7 +209,10 @@ class ColecaoRestaurantes {
         File arquivo = new File("/tmp/restaurantes.csv");
         Scanner scan = new Scanner(arquivo);
         int tam = 0;
-        while (scan.hasNext()) { scan.nextLine(); tam++; }
+        while (scan.hasNextLine()) { 
+            scan.nextLine(); 
+            tam++; 
+        }
         scan.close();
         ColecaoRestaurantes novaCol = new ColecaoRestaurantes(tam - 1);
         novaCol.lerCsv("/tmp/restaurantes.csv");
@@ -203,8 +220,11 @@ class ColecaoRestaurantes {
     }
 
     public Restaurante buscarPorId(int id) {
-        for (int i = 0; i < tamanho; i++)
-            if (restaurantes[i].getIdRestaurante() == id) return restaurantes[i];
+        for (int i = 0; i < tamanho; i++) {
+            if (restaurantes[i].getIdRestaurante() == id) {
+                return restaurantes[i];
+            }
+        }
         return null;
     }
 }
@@ -231,15 +251,26 @@ class ArvoreAVL {
     }
 
     private int getAltura(No no) {
-        return (no == null) ? 0 : no.altura;
+        if (no == null) {
+            return 0;
+        } else {
+            return no.altura;
+        }
     }
 
     private void atualizarAltura(No no) {
-        no.altura = 1 + Math.max(getAltura(no.esq), getAltura(no.dir));
+        int altEsq = getAltura(no.esq);
+        int altDir = getAltura(no.dir);
+        if (altEsq > altDir) {
+            no.altura = 1 + altEsq;
+        } else {
+            no.altura = 1 + altDir;
+        }
     }
 
     private int fatorBalanceamento(No no) {
-        return (no == null) ? 0 : getAltura(no.esq) - getAltura(no.dir);
+        if (no == null) return 0;
+        return getAltura(no.esq) - getAltura(no.dir);
     }
 
     private No rotacaoDir(No y) {
@@ -280,6 +311,7 @@ class ArvoreAVL {
         atualizarAltura(i);
         int fb = fatorBalanceamento(i);
 
+        // logica do balanceament vqi que da
         if (fb > 1 && x.getNome().compareTo(i.esq.elemento.getNome()) < 0) {
             return rotacaoDir(i);
         }
@@ -303,22 +335,20 @@ class ArvoreAVL {
     }
 
     private boolean pesquisar(String x, No i) {
-        boolean resp = false;
         if (i == null) {
-            resp = false;
+            return false;
         } else {
             comparacoes++;
             if (i.elemento.getNome().compareTo(x) == 0) {
-                resp = true;
+                return true;
             } else if (i.elemento.getNome().compareTo(x) > 0) {
                 System.out.print("esq ");
-                resp = pesquisar(x, i.esq);
+                return pesquisar(x, i.esq);
             } else {
                 System.out.print("dir ");
-                resp = pesquisar(x, i.dir);
+                return pesquisar(x, i.dir);
             }
         }
-        return resp;
     }
 
     public void caminhaCentral(No i) {
@@ -340,10 +370,13 @@ public class Main {
         String linha = scan.next();
         ArvoreAVL arvore = new ArvoreAVL();
 
+        // loop to iti
         while (linha.compareTo("-1") != 0) {
             int id = Integer.parseInt(linha);
             Restaurante r = cr.buscarPorId(id);
-            if (r != null) arvore.inserir(r);
+            if (r != null) {
+                arvore.inserir(r);
+            }
             linha = scan.next();
         }
 
@@ -362,7 +395,7 @@ public class Main {
         }
 
         long fim = System.nanoTime();
-        double tempoMs = (fim - inicio) / 1_000_000.0;
+        double tempoMs = (fim - inicio) / 1000000.0;
 
         arvore.caminhaCentral(arvore.raiz);
         scan.close();

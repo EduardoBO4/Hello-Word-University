@@ -133,18 +133,18 @@ class TrieHash {
     }
 
     public boolean pesquisar(String nome) {
-        NoTrie atual = raiz;
+        NoTrie  atual = raiz; 
         for (int i = 0; i < nome.length(); i++) {
             char c = nome.charAt(i);
             comparacoes++;
             if (!atual.filhos.containsKey(c)) {
                 return false;
             }
-            System.out.print(c + " ");
-            atual = atual.filhos.get(c);
+        System.out.print(c + " "); 
+            atual =  atual.filhos.get(c);
         }
         if (atual.restaurante != null) {
-            System.out.print("SIM");
+      System.out.print("SIM"); 
             System.out.println(" " + atual.restaurante.formatar());
             return true;
         }
@@ -165,7 +165,7 @@ public class Main {
         while (linha.compareTo("-1") != 0) {
             int id = Integer.parseInt(linha);
             Restaurante r = cr.buscarPorId(id);
-            if (r != null) trie.inserir(r);
+         if (r != null) trie.inserir(r); 
             linha = scan.next();
         }
 

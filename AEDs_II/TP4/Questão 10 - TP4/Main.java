@@ -131,13 +131,13 @@ class TrieBST {
 
     private NoTrie buscarBST(NoBSTChar no, char c) {
         if (no == null) return null;
-        if (c == no.chave) return no.filho;
+   if (c == no.chave) return no.filho;
         if (c < no.chave) return buscarBST(no.esq, c);
         return buscarBST(no.dir, c);
     }
 
     public void inserir(Restaurante r) {
-        NoTrie atual = raiz;
+        NoTrie  atual = raiz;
         String nome = r.getNome();
         for (int i = 0; i < nome.length(); i++) {
             char c = nome.charAt(i);
@@ -160,12 +160,12 @@ class TrieBST {
             if (filho == null) {
                 return false;
             }
-            System.out.print(c + " ");
+        System.out.print(c + " ");
             atual = filho;
         }
         if (atual.restaurante != null) {
             System.out.print("SIM");
-            System.out.println(" " + atual.restaurante.formatar());
+      System.out.println(" " + atual.restaurante.formatar());
             return true;
         }
         return false;
@@ -185,7 +185,7 @@ public class Main {
         while (linha.compareTo("-1") != 0) {
             int id = Integer.parseInt(linha);
             Restaurante r = cr.buscarPorId(id);
-            if (r != null) trie.inserir(r);
+         if (r != null) trie.inserir(r);
             linha = scan.next();
         }
 

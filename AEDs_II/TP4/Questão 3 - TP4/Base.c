@@ -12,9 +12,7 @@ typedef struct {
 } Hora;
 
 typedef struct {
-    int dia;
-    int mes;
-    int ano;
+    int dia, mes, ano;
 } Data;
 
 typedef struct {
@@ -84,7 +82,13 @@ Restaurante parseLinha(const char* linha) {
     r.horarioAbertura = parseHora(h1);
     r.horarioFechamento = parseHora(h2);
     tok = strtok_r(NULL, ",", &saveptr); r.dataAbertura = parseData(tok);
-    tok = strtok_r(NULL, ",", &saveptr); r.aberto = (strncmp(tok, "true", 4) == 0) ? 1 : 0;
+    tok = strtok_r(NULL, ",", &saveptr); 
+    
+    if (strncmp(tok, "true", 4) == 0) {
+        r.aberto = 1;
+    } else {
+        r.aberto = 0;
+    }
     return r;
 }
 
@@ -102,12 +106,21 @@ void formatar(Restaurante* r, char* buf) {
         sprintf(avalStr, "%.1f", r->avaliacao);
     else
         sprintf(avalStr, "%g", r->avaliacao);
+        
+    // ternario aqui n 
+    char strAberto[6];
+    if (r->aberto != 0) {
+        strcpy(strAberto, "true");
+    } else {
+        strcpy(strAberto, "false");
+    }
+    
     sprintf(buf, "[%d ## %s ## %s ## %d ## %s ## [%s] ## %s ## %02d:%02d-%02d:%02d ## %02d/%02d/%04d ## %s]",
             r->id, r->nome, r->cidade, r->capacidade, avalStr, cozStr, faixa,
             r->horarioAbertura.hora, r->horarioAbertura.minuto,
             r->horarioFechamento.hora, r->horarioFechamento.minuto,
             r->dataAbertura.dia, r->dataAbertura.mes, r->dataAbertura.ano,
-            r->aberto ? "true" : "false");
+            strAberto);
 }
 
 void tirarN(char* s) {
@@ -128,6 +141,7 @@ Hash* iniciarHash(int m, int r) {
     return h;
 }
 
+// somando os caracteres pra tirar o modulo, padrao
 int hashFunc(char* chave, Hash* h) {
     int soma = 0;
     for (int i = 0; chave[i] != '\0'; i++) soma += (int)chave[i];
@@ -136,9 +150,12 @@ int hashFunc(char* chave, Hash* h) {
 
 void inserir(Restaurante* r, Hash* h) {
     int pos = hashFunc(r->nome, h);
+    
+    // o if com virgula contando a comparacao e a insercao mesmo assim
     if (comparacoes++, h->tabela[pos] == NULL) {
         h->tabela[pos] = r;
     } else if (comparacoes++, h->nr < h->r) {
+        // jogando pra area de reserva no fim do array
         h->tabela[h->m + h->nr] = r;
         h->nr++;
     } else {
@@ -149,13 +166,16 @@ void inserir(Restaurante* r, Hash* h) {
 int pesquisar(char* chave, Hash* h) {
     int pos = hashFunc(chave, h);
     int resp = -1;
+    
     if (comparacoes++, h->tabela[pos] != NULL && strcmp(h->tabela[pos]->nome, chave) == 0) {
         resp = pos;
     }
+    
+    // se nao achou na principal, caça na area de reserva
     for (int i = h->m; i < h->m + h->nr; i++) {
         if (comparacoes++, h->tabela[i] != NULL && strcmp(h->tabela[i]->nome, chave) == 0) {
             resp = i;
-            i = h->m + h->nr;
+            i = h->m + h->nr; // quebra o loop Max gosta eu acho
         }
     }
     return resp;
@@ -195,6 +215,8 @@ int main() {
 
     char linha[128];
     scanf("%s", linha);
+    
+    // insere ate vir o -1
     while (strcmp(linha, "-1") != 0) {
         int id = atoi(linha);
         Restaurante* r = buscarPorId(id);
@@ -226,6 +248,7 @@ int main() {
     clock_t fim = clock();
     double tempoMs = (double)(fim - inicio) / CLOCKS_PER_SEC * 1000.0;
 
+    // log base
     FILE* arq = fopen("890309_hash_reserva.txt", "w");
     if (arq) {
         fprintf(arq, "890309\t%ld\t%ld\t%.2f\n", comparacoes, mov, tempoMs);

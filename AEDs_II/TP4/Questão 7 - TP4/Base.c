@@ -162,7 +162,7 @@ void pesquisar(NoBST* no, char c_busca, const char* nome_busca, const char* dir)
         NoLista* p = no->lista;
         while (p != NULL && strcmp(p->restaurante.nome, nome_busca) < 0) {
             comparacoes++;
-            printf("%s ", p->restaurante.nome);
+   printf("%s ", p->restaurante.nome); 
             p = p->prox;
         }
         if (p != NULL && strcmp(p->restaurante.nome, nome_busca) == 0) {
@@ -174,7 +174,7 @@ void pesquisar(NoBST* no, char c_busca, const char* nome_busca, const char* dir)
             printf("NAO\n");
         }
     } else if (c_busca < no->chave) {
-        pesquisar(no->esq, c_busca, nome_busca, "ESQ");
+   pesquisar(no->esq, c_busca, nome_busca, "ESQ"); 
     } else {
         pesquisar(no->dir, c_busca, nome_busca, "DIR");
     }
@@ -211,7 +211,7 @@ int main() {
     while (strcmp(linha, "-1") != 0) {
         int id = atoi(linha);
         Restaurante* r = buscarPorId(id);
-        if (r != NULL) raizBST = inserirBST(raizBST, *r);
+        if (r != NULL)  raizBST = inserirBST(raizBST, *r); 
         scanf("%s", linha);
     }
 

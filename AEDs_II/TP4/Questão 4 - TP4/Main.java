@@ -23,7 +23,7 @@ class Hora {
 }
 
 class Data {
-    private int ano; private int mes; private int dia;
+    private int ano, mes, dia; 
 
     public Data(int ano, int mes, int dia) { this.ano = ano; this.mes = mes; this.dia = dia; }
     public int getAno() { return ano; } public int getMes() { return mes; } public int getDia() { return dia; }
@@ -42,7 +42,7 @@ class Data {
 class Restaurante {
     private int idRestaurante;
     private String nome;
-    private String cidade;
+    private String city; 
     private int capacidade;
     private double avaliacao;
     private String[] tiposCozinha;
@@ -54,7 +54,7 @@ class Restaurante {
 
     public Restaurante(int idRestaurante, String nome, String cidade, int capacidade, double avaliacao,
             String[] tiposCozinha, int faixa_preco, Hora horarioAbertura, Hora horarioFechamento, Data dataAbertura, boolean aberto) {
-        this.idRestaurante = idRestaurante; this.nome = nome; this.cidade = cidade;
+        this.idRestaurante = idRestaurante; this.nome = nome; this.city = cidade;
         this.capacidade = capacidade; this.avaliacao = avaliacao; this.tiposCozinha = tiposCozinha;
         this.faixa_preco = faixa_preco; this.horarioAbertura = horarioAbertura;
         this.horarioFechamento = horarioFechamento; this.dataAbertura = dataAbertura; this.aberto = aberto;
@@ -88,9 +88,16 @@ class Restaurante {
         String abertoStr = scan.next();
         boolean aberto = (abertoStr.compareTo("true") == 0);
         scan.close();
+        
         String[] aux = new String[10]; int cout = 0;
         Scanner scanTp = new Scanner(tpCozinha); scanTp.useDelimiter(";");
-        while (scanTp.hasNext()) { String p = scanTp.next(); if (p.length() > 0) { aux[cout] = p; cout++; } }
+        while (scanTp.hasNext()) { 
+            String p = scanTp.next(); 
+            if (p.length() > 0) { 
+                aux[cout] = p; 
+                cout++; 
+            } 
+        }
         scanTp.close();
         String[] tipoCozinha = new String[cout];
         for (int i = 0; i < cout; i++) tipoCozinha[i] = aux[i];
@@ -108,7 +115,7 @@ class Restaurante {
         for (int i = 0; i < faixa_preco; i++) faixa_p += '$';
         String strAvaliacao = avaliacao + "";
         return String.format("[%d ## %s ## %s ## %d ## %s ## [%s] ## %s ## %s-%s ## %s ## %b]",
-                idRestaurante, nome, cidade, capacidade, strAvaliacao, strCozinhas,
+                idRestaurante, nome, city, capacidade, strAvaliacao, strCozinhas,
                 faixa_p, horarioAbertura.formatar(), horarioFechamento.formatar(),
                 dataAbertura.formatar(), aberto);
     }
@@ -166,6 +173,7 @@ class HashRehash {
         for (int i = 0; i < TAM_TAB; i++) tabela[i] = null;
     }
 
+    // calcula o ascii somando letra por letra
     private int somaAscii(String nome) {
         int soma = 0;
         for (int i = 0; i < nome.length(); i++) soma += (int) nome.charAt(i);
@@ -181,20 +189,24 @@ class HashRehash {
             tabela[pos1] = r;
             return;
         }
+        
+        // colidiu no h1, tenta a segunda funcao de hash (rehash)
         int pos2 = h2(r.getNome());
         if (tabela[pos2] == null) {
             tabela[pos2] = r;
             return;
         }
+        
         System.out.println(r.getNome());
     }
 
     public int pesquisar(String nome) {
         int pos1 = h1(nome);
         comparacoes++;
-        if (tabela[pos1] != null && tabela[pos1].getNome().equals(nome)) {
+   if (tabela[pos1] != null && tabela[pos1].getNome().equals(nome)) {
             return pos1;
-        }
+   }
+        
         int pos2 = h2(nome);
         comparacoes++;
         if (tabela[pos2] != null && tabela[pos2].getNome().equals(nome)) {
@@ -218,10 +230,11 @@ public class Main {
         String linha = scan.next();
         HashRehash hash = new HashRehash();
 
+        // lendo ate vir o flag de parada
         while (linha.compareTo("-1") != 0) {
             int id = Integer.parseInt(linha);
             Restaurante r = cr.buscarPorId(id);
-            if (r != null) hash.inserir(r);
+         if (r != null) hash.inserir(r);
             linha = scan.next();
         }
 
@@ -241,9 +254,10 @@ public class Main {
         }
 
         long fim = System.nanoTime();
-        double tempoMs = (fim - inicio) / 1_000_000.0;
+        double tempoMs = (fim - inicio) / 1000000.0; // tirado o literal com underline pra ficar padrao antigo
         scan.close();
 
+        // saida padrao tp
         FileWriter arq = new FileWriter(MATRICULA + "_hash_rehash.txt");
         PrintWriter gravarArq = new PrintWriter(arq);
         gravarArq.printf("%s\t%d\t%.2f\n", MATRICULA, hash.comparacoes, tempoMs);

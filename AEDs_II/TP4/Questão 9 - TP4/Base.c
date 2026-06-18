@@ -171,7 +171,7 @@ int pesquisar(NoTrie* raiz, const char* nome) {
         if (filho == NULL) {
             return 0;
         }
-        printf("%c ", c);
+   printf("%c ", c);
         atual = filho;
     }
     if (atual->restaurante != NULL) {
@@ -200,7 +200,7 @@ void lerCsv() {
     while (fgets(linha, sizeof(linha), f)) {
         int len = strlen(linha);
         if (len > 0 && linha[len-1] == '\n') linha[len-1] = '\0';
-        if (strlen(linha) > 0)
+   if (strlen(linha) > 0)
             restaurantes[numRestaurantes++] = parseLinha(linha);
     }
     fclose(f);
@@ -215,7 +215,7 @@ int main() {
     while (strcmp(linha, "-1") != 0) {
         int id = atoi(linha);
         Restaurante* r = buscarPorId(id);
-        if (r != NULL) inserir(raizTrie, r);
+   if (r != NULL) inserir(raizTrie, r);
         scanf("%s", linha);
     }
 
