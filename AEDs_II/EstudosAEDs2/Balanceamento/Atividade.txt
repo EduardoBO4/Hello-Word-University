@@ -1,2 +1,13 @@
 -Fazer atividade dos slide de AVL pág 77 ja fiz a 1 , faz a 2 e 3;
--Fazer atividade dos slide de 234 pag 45 
+-Fazer atividade dos slide de 234 pag 45 (fiz a de 1 até 20 por decida)
+-
+Resposta atividade Alvinegra: Correlação entre as Arestas da Árvore 2.3.4 e as Arestas Brancas da Árvore Alvinegra
+As arestas brancas (também chamadas de pretas ou finas) da Árvore Alvinegra correspondem exatamente às arestas externas que conectam nós distintos (caixinhas diferentes) na Árvore 2.3.4 original.
+Para entender essa correlação, precisamos analisar os dois tipos de arestas existentes na representação Alvinegra:
+Arestas Vermelhas (Grossas): Não representam uma mudança de nível na árvore. Elas servem apenas para conectar elementos que, na Árvore 2.3.4, pertencem logicamente à mesma caixinha (simulando a estrutura interna de um 3-nó ou 4-nó).
+Arestas Brancas (Finas): Representam os ponteiros reais de descida. Elas saem de um elemento e apontam para um nó filho em um nível inferior, mudando completamente de subárvore.
+🎯 Impacto no Balanceamento (Relação com a Altura)
+Dessa diferenciação surge uma regra matemática fundamental: para calcular a altura ou verificar o balanceamento da Árvore Alvinegra (de forma análoga ao que fazemos na AVL ou na 2.3.4), contamos apenas os nós pretos e as arestas brancas, ignorando os nós e caminhos vermelhos.
+Como as arestas vermelhas servem apenas para "esticar" os elementos para os lados dentro do mesmo nível lógico, o número de arestas brancas atravessadas da raiz até qualquer folha nula (null) será sempre idêntico. Esse valor (chamado de Black-Height) reflete de maneira perfeita a altura real da Árvore 2.3.4 que foi convertida.
+
+-Fazer atividade dos slide de alvinegra pag 67 em diante
