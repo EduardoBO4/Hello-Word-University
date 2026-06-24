@@ -232,16 +232,23 @@ public class Alvinegra {
             balancear(bisavo, avo, pai, i);
          }
       } else {
+
+
          // Achou um 4-no: eh preciso fragmeta-lo e reequilibrar a arvore
          if (i.esq != null && i.dir != null && i.esq.cor == true && i.dir.cor == true) {
             i.cor = true;
-            i.esq.cor = i.dir.cor = false;
+            i.esq.cor = false;
+            i.dir.cor = false;
+            
             if (i == raiz) {
                i.cor = false;
             } else if (pai.cor == true) {
                balancear(bisavo, avo, pai, i);
             }
          }
+
+
+
          if (elemento < i.elemento) {
             inserir(elemento, avo, pai, i, i.esq);
          } else if (elemento > i.elemento) {
