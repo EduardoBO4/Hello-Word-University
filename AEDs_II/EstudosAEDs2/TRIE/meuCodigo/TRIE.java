@@ -20,6 +20,7 @@ class No{
         // Opcional: Garante que todas as posições comecem vazias (null)
         for (int i = 0; i < 255; i++) {
             this.prox[i] = null;
+            this.folha = false;
         }
     }
     public No() {

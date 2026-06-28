@@ -1,0 +1,138 @@
+// =========================================================================
+// 1. AS PEÇAS DO LEGO (As classes base menores)
+// =========================================================================
+
+// Nó básico para a Árvore Binária
+class No {
+    public int elemento;
+    public No esq, dir;
+    public No(int elemento) {
+        this.elemento = elemento;
+        this.esq = this.dir = null;
+    }
+}
+
+// Classe Árvore Binária
+class Arvore {
+    public No raiz; // Guardamos a raiz aqui dentro
+
+    // O "mostrar" sem parâmetro: É a ponte para o mundo externo.
+    // Você não precisa lembrar se é pré, pós ou central, quem usa a árvore só chama .mostrar()
+    public void mostrar() {
+        System.out.print("[Árvore Binária - Caminhamento Central]: ");
+        mostrarCentral(raiz); // Repassa o trabalho para o método real passando a raiz
+        System.out.println();
+    }
+
+    // O "mostrar" com parâmetro: Esse sim faz o trabalho duro e recursivo
+    private void mostrarCentral(No i) {
+        if (i != null) {
+            mostrarCentral(i.esq);
+            System.out.print(i.elemento + " ");
+            mostrarCentral(i.dir);
+        }
+    }
+}
+
+// Classe Lista Encadeada (Simples, apenas para demonstração)
+class Lista {
+    public void mostrar() {
+        // Listas são sequenciais, então o mostrar delas usa um "while" ou um print direto
+        System.out.println("[Lista Encadeada]: Elemento_A -> Elemento_B -> NULL");
+    }
+}
+
+// Classe T3: A tabela Hash mista (Vetor + Árvore de Reserva)
+class HashT3 {
+    public int[] tabela = {30, 40, -1}; // Vetor do T3 (-1 significa posição vazia)
+    public Arvore arvoreReserva = new Arvore(); // Árvore na reserva de T3
+
+    public void mostrar() {
+        System.out.print("[Tabela Hash T3]: ");
+        for (int i = 0; i < tabela.length; i++) {
+            if (tabela[i] != -1) System.out.print(tabela[i] + " ");
+        }
+        System.out.println();
+        
+        // O T3 também tem que mostrar a árvore dele! Ele terceiriza para a classe Árvore:
+        System.out.print("  └─> ");
+        arvoreReserva.mostrar(); 
+    }
+}
+
+// =========================================================================
+// 2. A REVOLUCIONÁRIA: CLASSE DOIDONA
+// =========================================================================
+class Doidona {
+    // Para podermos testar o seu método "aberto/inseguro" no main,
+    // deixei essas variáveis como 'public'. No mundo real elas seriam 'private'.
+    public int[] t1 = {10, 20, -1}; // Vetor principal da Doidona
+    public HashT3 t3 = new HashT3();
+    public Lista lista = new Lista();
+    public Arvore arvore = new Arvore();
+
+    // Construtor apenas para colocar alguns dados de teste dentro delas
+    public Doidona() {
+        arvore.raiz = new No(88);
+        arvore.raiz.esq = new No(55);
+        arvore.raiz.dir = new No(99);
+
+        t3.arvoreReserva.raiz = new No(7);
+    }
+
+    // A FORMA ENCAPSULADA: O mostrar que você achou limpo, mas não gostou
+    public void mostrar() {
+        System.out.println("\n=== EXECUÇÃO: FORMA ENCAPSULADA (doidona.mostrar()) ===");
+        
+        // 1. Ela mesma imprime o seu vetor T1
+        System.out.print("[Vetor T1 Principal]: ");
+        for (int i = 0; i < t1.length; i++) {
+            if (t1[i] != -1) System.out.print(t1[i] + " ");
+        }
+        System.out.println();
+
+        // 2. Ela terceiriza o resto, chamando o 'mostrar' específico de cada uma!
+        t3.mostrar();
+        lista.mostrar();
+        arvore.mostrar();
+    }
+}
+
+// =========================================================================
+// 3. O CORAÇÃO DO PROGRAMA: MÉTODO MAIN
+// =========================================================================
+public class MostarDifs {
+    public static void main(String[] args) {
+        Doidona doidona = new Doidona();
+
+        // -----------------------------------------------------------------
+        // ABORDAGEM 1: A FORMA "ABERTA / EXPLÍCITA" (A que você prefere por segurança)
+        // -----------------------------------------------------------------
+        System.out.println("=== EXECUÇÃO: FORMA ABERTA (Passo a passo no Main) ===");
+        
+        // Se você não quiser usar o encapsulamento, o seu Main é obrigado a extrair
+        // cada estrutura de dentro da doidona e mandar imprimir uma por uma na sua frente:
+        
+        System.out.print("[Vetor T1 Principal]: ");
+        for (int i = 0; i < doidona.t1.length; i++) {
+            if (doidona.t1[i] != -1) System.out.print(doidona.t1[i] + " ");
+        }
+        System.out.println();
+
+        // Você acessa a variável t3 de dentro da doidona e chama o mostrar dela
+        doidona.t3.mostrar(); 
+
+        // Você acessa a lista de dentro da doidona e chama o mostrar dela
+        doidona.lista.mostrar(); 
+
+        // Você acessa a árvore de dentro da doidona e chama o mostrar dela
+        doidona.arvore.mostrar(); 
+
+
+        // -----------------------------------------------------------------
+        // ABORDAGEM 2: A FORMA ENCAPSULADA (A que o professor vai pedir na prova)
+        // -----------------------------------------------------------------
+        // Repare como essa única linha faz EXATAMENTE a mesma coisa que o bloco inteiro acima.
+        doidona.mostrar();
+    }
+}
