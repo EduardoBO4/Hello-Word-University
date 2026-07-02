@@ -1,3 +1,5 @@
+import Pratica.No;
+
 class DoidonaSemTADsProntas {
    final int TAMT1 = 100;
    final int TAMT3 = 100;

@@ -1,3 +1,5 @@
+import Pratica.No;
+
 class Patricia {
    No raiz;
    String[] array; //ignorar questão de tamanho do array

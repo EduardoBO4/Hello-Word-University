@@ -1,3 +1,5 @@
+import Pratica.No;
+
 /**
  * Arvore binaria de pesquisa
  * @author Max do Val Machado

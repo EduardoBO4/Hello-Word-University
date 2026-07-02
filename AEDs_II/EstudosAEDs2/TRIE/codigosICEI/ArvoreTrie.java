@@ -1,3 +1,5 @@
+import Pratica.No;
+
 class ArvoreTrie {
     private No raiz; // Único atributo: o nó raiz (ponto de partida da árvore)
 

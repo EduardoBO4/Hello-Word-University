@@ -1,3 +1,5 @@
+import Pratica.No;
+
 public class Arvores {
     class No {
         int valor;
