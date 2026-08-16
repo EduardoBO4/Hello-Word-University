@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>WebGIS Saúde BH — Protótipo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+<style>
+  :root{
+    --navy:#1f3552; --navy-dark:#152438; --accent:#3d7cc9;
+    --bg:#f4f7fb; --card:#ffffff; --line:#dde5ee; --text:#1c2a3a; --muted:#66788f;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+  header h1{font-size:17px;margin:0;font-weight:600;}
+  header span{font-size:12px;color:#c7d6ea;}
+  #layout{display:flex;height:calc(100vh - 54px);}
+  #sidebar{width:340px;min-width:340px;background:var(--card);border-right:1px solid var(--line);
+    padding:16px;overflow-y:auto;}
+  #map{flex:1;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;}
+  select, input[type=range]{width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;font-size:13.5px;background:#fff;}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{border:1px solid var(--line);border-radius:16px;padding:5px 12px;font-size:12.5px;cursor:pointer;background:#fff;user-select:none;color:var(--text);}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .radio-row{display:flex;gap:14px;font-size:13px;}
+  .radio-row label{display:flex;align-items:center;gap:5px;font-weight:400;text-transform:none;}
+  #raioValor{font-weight:700;color:var(--accent);}
+  hr{border:none;border-top:1px solid var(--line);margin:16px 0;}
+  #resultsHeader{font-size:12.5px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;display:flex;justify-content:space-between;}
+  .result-card{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:.15s;background:#fff;}
+  .result-card:hover{border-color:var(--accent);box-shadow:0 2px 6px rgba(61,124,201,.15);}
+  .result-card.selected{border-color:var(--accent);background:#eef5fd;}
+  .result-card .name{font-weight:600;font-size:13.5px;color:var(--navy);}
+  .result-card .meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .badge{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:10px;margin-right:6px;color:#fff;}
+  .badge.farmacia{background:#2e9e5b;}
+  .badge.lab{background:#c0562b;}
+  .empty{font-size:13px;color:var(--muted);padding:10px 0;}
+  .leaflet-popup-content{font-size:13px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>WebGIS Saúde BH — Serviços próximos a hospitais</h1>
+  <span>Protótipo — Entregável 3</span>
+</header>
+
+<div id="layout">
+  <div id="sidebar">
+
+    <div class="field">
+      <label for="hospitalSelect">Hospital de referência</label>
+      <select id="hospitalSelect"></select>
+    </div>
+
+    <div class="field">
+      <label>Categoria de serviço</label>
+      <div class="chips">
+        <div class="chip active" data-cat="farmacia">Farmácias</div>
+        <div class="chip active" data-cat="lab">Laboratórios de Radiografia</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Raio de busca: <span id="raioValor">800 m</span></label>
+      <input type="range" id="raioRange" min="200" max="3000" step="50" value="800">
+    </div>
+
+    <div class="field">
+      <label>Ordenar por</label>
+      <div class="radio-row">
+        <label><input type="radio" name="ordem" value="distancia" checked> Menor distância</label>
+        <label><input type="radio" name="ordem" value="nome"> Ordem alfabética</label>
+      </div>
+    </div>
+
+    <hr>
+
+    <div id="resultsHeader">
+      <span>Resultados</span>
+      <span id="resultsCount">0</span>
+    </div>
+    <div id="resultsList"></div>
+  </div>
+
+  <div id="map"></div>
+</div>
+
+<script>
+// ------------------------------------------------------------------
+// DADOS DE EXEMPLO — coordenadas aproximadas em Belo Horizonte
+// ------------------------------------------------------------------
+const hospitais = [
+  { id: "h1", nome: "Hospital das Clínicas (UFMG)", lat: -19.9273, lng: -43.9483 },
+  { id: "h2", nome: "Hospital Madre Teresa", lat: -19.9142, lng: -43.9354 },
+  { id: "h3", nome: "Hospital Vera Cruz", lat: -19.9339, lng: -43.9475 },
+  { id: "h4", nome: "Hospital Odilon Behrens", lat: -19.8963, lng: -43.9635 },
+  { id: "h5", nome: "Hospital Mater Dei - Contorno", lat: -19.9366, lng: -43.9312 },
+  { id: "h6", nome: "Hospital Belo Horizonte", lat: -19.9203, lng: -43.9226 },
+  { id: "h7", nome: "Hospital Municipal Odilon Behrens - Anexo", lat: -19.8905, lng: -43.9702 },
+  { id: "h8", nome: "Hospital Life Center - Coração Eucarístico", lat: -19.9165, lng: -43.9596 }
+];
+
+const servicos = [
+  // ---- Farmácias ----
+  { id: "f1", nome: "Farmácia Pague Menos - Santa Efigênia", categoria: "farmacia", lat: -19.9251, lng: -43.9440 },
+  { id: "f2", nome: "Drogaria Araújo - Funcionários", categoria: "farmacia", lat: -19.9310, lng: -43.9401 },
+  { id: "f3", nome: "Farmácia Nissei - Savassi", categoria: "farmacia", lat: -19.9380, lng: -43.9345 },
+  { id: "f4", nome: "Drogasil - Floresta", categoria: "farmacia", lat: -19.9186, lng: -43.9280 },
+  { id: "f5", nome: "Farmácia Popular - Carlos Prates", categoria: "farmacia", lat: -19.9042, lng: -43.9605 },
+  { id: "f6", nome: "Drogaria Araújo - São Cristóvão", categoria: "farmacia", lat: -19.8899, lng: -43.9581 },
+  { id: "f7", nome: "Drogaria Araújo - Barro Preto", categoria: "farmacia", lat: -19.9295, lng: -43.9392 },
+  { id: "f8", nome: "Farmácia São Paulo - Lourdes", categoria: "farmacia", lat: -19.9358, lng: -43.9418 },
+  { id: "f9", nome: "Drogasil - Sion", categoria: "farmacia", lat: -19.9422, lng: -43.9330 },
+  { id: "f10", nome: "Pague Menos - Cidade Nova", categoria: "farmacia", lat: -19.9096, lng: -43.9210 },
+  { id: "f11", nome: "Drogaria Araújo - Coração Eucarístico", categoria: "farmacia", lat: -19.9188, lng: -43.9615 },
+  { id: "f12", nome: "Farmácia Nissei - Prado", categoria: "farmacia", lat: -19.9219, lng: -43.9548 },
+  { id: "f13", nome: "Drogasil - Padre Eustáquio", categoria: "farmacia", lat: -19.9038, lng: -43.9672 },
+  { id: "f14", nome: "Farmácia Popular - Bonfim", categoria: "farmacia", lat: -19.8933, lng: -43.9649 },
+  { id: "f15", nome: "Drogaria Araújo - Gutierrez", categoria: "farmacia", lat: -19.9410, lng: -43.9558 },
+  { id: "f16", nome: "Pague Menos - Serra", categoria: "farmacia", lat: -19.9385, lng: -43.9198 },
+
+  // ---- Laboratórios de radiografia / imagem ----
+  { id: "l1", nome: "Laboratório CDI - Imagem", categoria: "lab", lat: -19.9296, lng: -43.9459 },
+  { id: "l2", nome: "Alta Excelência Diagnóstica", categoria: "lab", lat: -19.9155, lng: -43.9370 },
+  { id: "l3", nome: "Radiologia Santa Efigênia", categoria: "lab", lat: -19.9265, lng: -43.9418 },
+  { id: "l4", nome: "Instituto Radiológico BH", categoria: "lab", lat: -19.9360, lng: -43.9500 },
+  { id: "l5", nome: "Diagnósticos Odilon", categoria: "lab", lat: -19.8985, lng: -43.9590 },
+  { id: "l6", nome: "CDI - Unidade Savassi", categoria: "lab", lat: -19.9375, lng: -43.9360 },
+  { id: "l7", nome: "Hermes Pardini - Estoril", categoria: "lab", lat: -19.9451, lng: -43.9702 },
+  { id: "l8", nome: "Hermes Pardini - Barro Preto", categoria: "lab", lat: -19.9312, lng: -43.9385 },
+  { id: "l9", nome: "Rede Cura - Diagnóstico por Imagem", categoria: "lab", lat: -19.9118, lng: -43.9245 },
+  { id: "l10", nome: "Alliar - Cidade Nova", categoria: "lab", lat: -19.9078, lng: -43.9192 },
+  { id: "l11", nome: "Radiologia Padre Eustáquio", categoria: "lab", lat: -19.9015, lng: -43.9648 },
+  { id: "l12", nome: "Imagem Diagnóstica Bonfim", categoria: "lab", lat: -19.8918, lng: -43.9622 },
+  { id: "l13", nome: "CDI - Unidade Gutierrez", categoria: "lab", lat: -19.9398, lng: -43.9540 }
+];
+
+// ------------------------------------------------------------------
+// ESTADO
+// ------------------------------------------------------------------
+let map, bufferLayer, hospitalMarker, resultMarkers = [], linhaConexao = null;
+let estado = {
+  hospitalId: hospitais[0].id,
+  categorias: new Set(["farmacia", "lab"]),
+  raio: 800,
+  ordem: "distancia",
+  selecionadoId: null
+};
+
+const catLabel = { farmacia: "Farmácia", lab: "Laboratório de Radiografia" };
+
+// ------------------------------------------------------------------
+// MAPA
+// ------------------------------------------------------------------
+function initMap() {
+  map = L.map("map").setView([hospitais[0].lat, hospitais[0].lng], 14);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+}
+
+function iconFor(tipo, destaque) {
+  const cores = { hospital: "#1f3552", farmacia: "#2e9e5b", lab: "#c0562b" };
+  const cor = cores[tipo];
+  const size = destaque ? 30 : 22;
+  return L.divIcon({
+    className: "",
+    html: `<div style="background:${cor};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4);"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size]
+  });
+}
+
+// ------------------------------------------------------------------
+// LÓGICA ESPACIAL (Turf.js) — UC06: contido / distância
+// ------------------------------------------------------------------
+function recalcular() {
+  const hospital = hospitais.find(h => h.id === estado.hospitalId);
+  const hospitalPt = turf.point([hospital.lng, hospital.lat]);
+
+  // Buffer (Polígono) em torno do hospital, raio em metros
+  const buffer = turf.buffer(hospitalPt, estado.raio / 1000, { units: "kilometers" });
+
+  // Point-in-polygon (contido) + distância geodésica
+  let encontrados = servicos
+    .filter(s => estado.categorias.has(s.categoria))
+    .map(s => {
+      const pt = turf.point([s.lng, s.lat]);
+      const contido = turf.booleanPointInPolygon(pt, buffer);
+      const distancia = turf.distance(hospitalPt, pt, { units: "meters" });
+      return { ...s, contido, distancia: Math.round(distancia) };
+    })
+    .filter(s => s.contido);
+
+  // Ordenação (UC08)
+  if (estado.ordem === "distancia") {
+    encontrados.sort((a, b) => a.distancia - b.distancia);
+  } else {
+    encontrados.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  }
+
+  desenharMapa(hospital, buffer, encontrados);
+  desenharLista(encontrados);
+}
+
+// ------------------------------------------------------------------
+// RENDERIZAÇÃO NO MAPA (UC07)
+// ------------------------------------------------------------------
+function desenharMapa(hospital, buffer, encontrados) {
+  if (bufferLayer) map.removeLayer(bufferLayer);
+  if (hospitalMarker) map.removeLayer(hospitalMarker);
+  resultMarkers.forEach(m => map.removeLayer(m));
+  resultMarkers = [];
+  if (linhaConexao) { map.removeLayer(linhaConexao); linhaConexao = null; }
+
+  bufferLayer = L.geoJSON(buffer, {
+    style: { color: "#3d7cc9", weight: 1.5, fillOpacity: 0.08, dashArray: "4 4" }
+  }).addTo(map);
+
+  hospitalMarker = L.marker([hospital.lat, hospital.lng], { icon: iconFor("hospital", true) })
+    .addTo(map)
+    .bindPopup(`<b>${hospital.nome}</b><br>Hospital de referência`);
+
+  encontrados.forEach(s => {
+    const marker = L.marker([s.lat, s.lng], { icon: iconFor(s.categoria, s.id === estado.selecionadoId) })
+      .addTo(map)
+      .bindPopup(`<b>${s.nome}</b><br>${catLabel[s.categoria]}<br>${s.distancia} m do hospital`);
+    marker.on("click", () => selecionar(s.id, hospital, s));
+    resultMarkers.push(marker);
+  });
+
+  map.setView([hospital.lat, hospital.lng], 14.5);
+}
+
+function desenharLista(encontrados) {
+  const list = document.getElementById("resultsList");
+  document.getElementById("resultsCount").textContent = encontrados.length;
+  list.innerHTML = "";
+
+  if (encontrados.length === 0) {
+    list.innerHTML = `<div class="empty">Nenhum estabelecimento encontrado neste raio. Tente aumentar o raio de busca.</div>`;
+    return;
+  }
+
+  encontrados.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "result-card" + (s.id === estado.selecionadoId ? " selected" : "");
+    div.innerHTML = `
+      <span class="badge ${s.categoria}">${catLabel[s.categoria]}</span>
+      <div class="name">${s.nome}</div>
+      <div class="meta">${s.distancia} m do hospital selecionado</div>
+    `;
+    div.onclick = () => {
+      const hospital = hospitais.find(h => h.id === estado.hospitalId);
+      selecionar(s.id, hospital, s);
+    };
+    list.appendChild(div);
+  });
+}
+
+// UC07 (fluxo alternativo): clique destaca marcador + traça linha (entidade Linha) hospital -> serviço
+function selecionar(id, hospital, servico) {
+  estado.selecionadoId = id;
+  recalcular();
+  const linha = turf.lineString([[hospital.lng, hospital.lat], [servico.lng, servico.lat]]);
+  linhaConexao = L.geoJSON(linha, { style: { color: "#c0562b", weight: 2, dashArray: "6 4" } }).addTo(map);
+}
+
+// ------------------------------------------------------------------
+// UI / EVENTOS
+// ------------------------------------------------------------------
+function initUI() {
+  const hospitalSelect = document.getElementById("hospitalSelect");
+  hospitais.forEach(h => {
+    const opt = document.createElement("option");
+    opt.value = h.id;
+    opt.textContent = h.nome;
+    hospitalSelect.appendChild(opt);
+  });
+  hospitalSelect.addEventListener("change", e => {
+    estado.hospitalId = e.target.value;
+    estado.selecionadoId = null;
+    recalcular();
+  });
+
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const cat = chip.dataset.cat;
+      if (estado.categorias.has(cat)) {
+        estado.categorias.delete(cat);
+        chip.classList.remove("active");
+      } else {
+        estado.categorias.add(cat);
+        chip.classList.add("active");
+      }
+      if (estado.categorias.size === 0) {
+        alert("Selecione ao menos uma categoria de serviço.");
+        estado.categorias.add(cat);
+        chip.classList.add("active");
+      }
+      recalcular();
+    });
+  });
+
+  const raio = document.getElementById("raioRange");
+  raio.addEventListener("input", e => {
+    estado.raio = Number(e.target.value);
+    document.getElementById("raioValor").textContent = estado.raio + " m";
+    recalcular();
+  });
+
+  document.querySelectorAll('input[name="ordem"]').forEach(r => {
+    r.addEventListener("change", e => {
+      estado.ordem = e.target.value;
+      recalcular();
+    });
+  });
+}
+
+initMap();
+initUI();
+recalcular();
+</script>
+</body>
+</html>
