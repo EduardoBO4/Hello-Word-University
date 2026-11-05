@@ -1,0 +1,31 @@
+# NewsFlow - Suíte de Testes BDD
+
+Projeto de automação de testes BDD utilizando Cucumber.js para a plataforma NewsFlow da Vértice[cite: 2, 8].
+
+## Visão Geral do Projeto
+
+Este repositório contém a especificação e a automação de testes para 4 histórias de usuário do sistema[cite: 2]:
+* **US01:** Salvar rascunho e recuperar versões (RN01)
+* **US02:** Aprovação e revisão de edições (RN02)
+* **US03:** Tratamento de falhas de entrega de e-mail (RN07)
+* **US04:** Enviar notificações push com limite de horário e quantidade (RN08)
+
+## Como Executar os Testes
+
+1. Acesse a pasta do projeto: `cd ES_II/Trabalho2`[cite: 11]
+2. Instale as dependências: `npm install`[cite: 8, 10]
+3. Execute a suíte de testes: `npm test`[cite: 8, 10]
+4. *(Opcional)* O relatório HTML interativo é gerado em `relatorios/cucumber-report.html`[cite: 8, 9].
+
+## Saída dos Testes (`npm test`)[cite: 10]
+
+```text
+> newsflow-bdd@1.0.0 test
+> cucumber-js
+
+This Node.js version (v24.13.0) has not been tested with this version of Cucumber; it should work normally, but please raise an issue if you see anything unexpected.
+..........................................................................
+
+15 scenarios (15 passed)
+74 steps (74 passed)
+0m00.087s (executing steps: 0m00.010s)
